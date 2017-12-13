@@ -5,7 +5,8 @@ function getDataFromApi(searchTerm, callback) {
     part: 'snippet',
     key: 'AIzaSyDZJrGeV-7If7_Uqly-WHs5VKqzoofvsKE',
     q: searchTerm,
-    per_page: 5
+    per_page: 5,
+    pageToken: nextPageToken
   }
   $.getJSON(YOUTUBE_SEARCH_URL, query, callback);
 }
@@ -15,8 +16,9 @@ function renderResult(result) {
   const imgTitle = result.snippet.title;
   const imgVideoId = result.id.videoId;
   const imgChannelId = result.snippet.channelId;
-  console.log(imgVideoId);
-  console.log(imgChannelId);
+//   const imgNextPage = data.nextPageToken
+//   console.log(imgVideoId);
+//   console.log(imgChannelId);
   return `
     <div>
       <h2>${imgTitle}</h2>
@@ -25,24 +27,29 @@ function renderResult(result) {
       </a>
       <p>Link to Channel: <a href="https://www.youtube.com/channel/${imgChannelId}">link</a>
     </div>
-  `;
+    `;
 }
 
+let nextPageToken = '';
+let lastQuery = '';
+// $('.previous').on('click', function (){
+    
+// })
+
+$('.next').on('click', function(){
+    // step 2:log out token
+    getDataFromApi(lastQuery, displayYouTubeSearchData);
+})
+// step 3: Get data from api that is the data that we want. nextpagetoken
+// step 4: display the new videos grabbed with nextpagetoken
 function displayYouTubeSearchData(data) {
-  const results = data.items.map((item, index) => renderResult(item));
-  $('.js-search-results').html(results);
+    console.log(data);
+    nextPageToken = data.nextPageToken;
+    const results = data.items.map((item, index) => renderResult(item));
+    $('.js-search-results').html(results);
+    // step 1:save the next page token so we can use it so user can use it later
 }
-// function display(data){
-//     let displayElem = $('.js-results');
-//     data.items.forEach(function (item) {
-//         let elem = $('.js-result-template').children().clone();
-//         let imgUrl = item.snippet.thumbnails.default.url;
-//         let watchUrl = YOUTUBE_SEARCH_URL + item.id.videoId;
-//         elem.find('a').attr('href', watchUrl);
-//         elem.find('img').attr('src', imgUrl);
-//         displayElem.append(elem);
-//     });
-// }
+
 
 function watchSubmit() {
   $('.js-search-form').submit(event => {
@@ -50,6 +57,8 @@ function watchSubmit() {
     const queryTarget = $(event.currentTarget).find('.js-query');
     const query = queryTarget.val();
     // clear out the input
+    lastQuery = query;
+    console.log(lastQuery);
     queryTarget.val("");
     getDataFromApi(query, displayYouTubeSearchData);
   });
